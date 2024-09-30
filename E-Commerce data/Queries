@@ -1,1 +1,186 @@
+-- Customers Table
+CREATE TABLE customers (
+    customer_id SERIAL PRIMARY KEY,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    email VARCHAR(100),
+    phone VARCHAR(15),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
+-- Products Table
+CREATE TABLE products (
+    product_id SERIAL PRIMARY KEY,
+    product_name VARCHAR(100),
+    category VARCHAR(50),
+    price DECIMAL(10, 2)
+);
+
+-- Orders Table
+CREATE TABLE orders (
+    order_id SERIAL PRIMARY KEY,
+    customer_id INT REFERENCES customers(customer_id),
+    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Order Details Table (order line items)
+CREATE TABLE order_details (
+    order_detail_id SERIAL PRIMARY KEY,
+    order_id INT REFERENCES orders(order_id),
+    product_id INT REFERENCES products(product_id),
+    quantity INT,
+    total_price DECIMAL(10, 2)
+);
+
+-- Insert Customers
+INSERT INTO customers (first_name, last_name, email, phone)
+VALUES
+('John', 'Doe', 'john.doe@example.com', '1234567890'),
+('Jane', 'Smith', 'jane.smith@example.com', '0987654321'),
+('David', 'Jones', 'david.jones@example.com', '1122334455');
+
+-- Insert Products
+INSERT INTO products (product_name, category, price)
+VALUES
+('Laptop', 'Electronics', 1200.00),
+('Smartphone', 'Electronics', 800.00),
+('Tablet', 'Electronics', 400.00),
+('Headphones', 'Accessories', 100.00),
+('Mouse', 'Accessories', 20.00);
+
+-- Insert Orders
+INSERT INTO orders (customer_id)
+VALUES
+(1),
+(2),
+(3);
+
+-- Insert Order Details
+INSERT INTO order_details (order_id, product_id, quantity, total_price)
+VALUES
+(1, 1, 1, 1200.00),  -- John bought 1 Laptop
+(1, 5, 2, 40.00),    -- John bought 2 Mouse
+(2, 2, 1, 800.00),   -- Jane bought 1 Smartphone
+(2, 4, 1, 100.00),   -- Jane bought 1 Headphones
+(3, 3, 3, 1200.00);  -- David bought 3 Tablets
+
+-- Insert Additional Customers
+INSERT INTO customers (first_name, last_name, email, phone)
+	VALUES
+		('Michael', 'Brown', 'michael.brown@example.com', '2223334444'),
+		('Emily', 'Davis', 'emily.davis@example.com', '5556667777'),
+		('William', 'Wilson', 'william.wilson@example.com', '8889990000'),
+		('Olivia', 'Miller', 'olivia.miller@example.com', '1112223333'),
+		('Sophia', 'Garcia', 'sophia.garcia@example.com', '4445556666'),
+		('Lucas', 'Martinez', 'lucas.martinez@example.com', '7778889999'),
+		('Emma', 'Rodriguez', 'emma.rodriguez@example.com', '1010101010'),
+		('James', 'Anderson', 'james.anderson@example.com', '1212121212'),
+		('Liam', 'Lee', 'liam.lee@example.com', '1313131313'),
+		('Charlotte', 'Perez', 'charlotte.perez@example.com', '1414141414');
+
+-- Insert Additional Products
+INSERT INTO products (product_name, category, price)
+	VALUES
+		('Monitor', 'Electronics', 250.00),
+		('Keyboard', 'Electronics', 50.00),
+		('Office Chair', 'Furniture', 150.00),
+		('Desk', 'Furniture', 200.00),
+		('Jacket', 'Clothing', 80.00),
+		('T-shirt', 'Clothing', 20.00),
+		('Sneakers', 'Clothing', 60.00),
+		('Smartwatch', 'Electronics', 300.00),
+		('Bluetooth Speaker', 'Electronics', 120.00),
+		('Coffee Table', 'Furniture', 180.00);
+
+-- Insert Additional Orders
+INSERT INTO orders (customer_id)
+	VALUES
+		(4),  -- Michael Brown
+		(5),  -- Emily Davis
+		(6),  -- William Wilson
+		(7),  -- Olivia Miller
+		(8),  -- Sophia Garcia
+		(9),  -- Lucas Martinez
+		(10), -- Emma Rodriguez
+		(1),  -- John Doe
+		(2),  -- Jane Smith
+		(3);  -- David Jones
+
+-- Insert Additional Order Details
+INSERT INTO order_details (order_id, product_id, quantity, total_price)
+	VALUES
+-- Michael Brown's Order
+(4, 2, 1, 800.00),   -- Smartphone
+(4, 6, 2, 40.00),    -- T-shirt (x2)
+
+-- Emily Davis's Order
+(5, 7, 1, 60.00),    -- Sneakers
+(5, 3, 1, 400.00),   -- Tablet
+
+-- William Wilson's Order
+(6, 10, 1, 180.00),  -- Coffee Table
+(6, 4, 1, 100.00),   -- Headphones
+
+-- Olivia Miller's Order
+(7, 8, 1, 300.00),   -- Smartwatch
+(7, 5, 1, 20.00),    -- Mouse
+
+-- Sophia Garcia's Order
+(8, 9, 2, 240.00),   -- Bluetooth Speaker (x2)
+(8, 7, 1, 60.00),    -- Sneakers
+
+-- Lucas Martinez's Order
+(9, 1, 1, 1200.00),  -- Laptop
+(9, 5, 1, 20.00),    -- Mouse
+
+-- Emma Rodriguez's Order
+(10, 6, 1, 20.00),   -- T-shirt
+(10, 3, 2, 800.00),  -- Tablets (x2)
+
+-- John Doe's Second Order
+(11, 8, 1, 300.00),  -- Smartwatch
+(11, 2, 1, 800.00),  -- Smartphone
+
+-- Jane Smith's Second Order
+(12, 10, 1, 180.00), -- Coffee Table
+(12, 4, 1, 100.00),  -- Headphones
+
+-- David Jones's Second Order
+(13, 1, 1, 1200.00), -- Laptop
+(13, 9, 1, 120.00);  -- Bluetooth Speaker
+
+
+--total sales across all orders
+SELECT 
+	SUM(total_price) AS total_sales
+		FROM order_details;
+
+--Top 5 Customers by Total Purchase
+SELECT c.first_name, c.last_name, SUM(od.total_price) AS total_spent
+	FROM customers c
+		JOIN orders o ON c.customer_id = o.customer_id
+		JOIN order_details od ON o.order_id = od.order_id
+			GROUP BY c.customer_id
+				ORDER BY total_spent DESC
+					LIMIT 5;
+
+--Most Popular Products by Quantity Sold
+SELECT p.product_name, SUM(od.quantity) AS total_sold
+	FROM products p
+		JOIN order_details od ON p.product_id = od.product_id
+		GROUP BY p.product_name
+		ORDER BY total_sold DESC;
+
+--sales by product category
+SELECT p.category, SUM(od.total_price) AS total_sales
+	FROM products p
+		JOIN order_details od ON p.product_id = od.product_id
+		GROUP BY p.category
+		ORDER BY total_sales DESC;
+
+--Customer Purchase Frequency
+SELECT c.first_name, c.last_name, COUNT(o.order_id) AS total_orders
+	FROM customers c
+		JOIN orders o ON c.customer_id = o.customer_id
+		GROUP BY c.customer_id
+		ORDER BY total_orders DESC;
