@@ -45,6 +45,7 @@ SELECT p.category, SUM(od.total_price) AS total_sales
 		JOIN order_details od ON p.product_id = od.product_id
 		GROUP BY p.category
 		ORDER BY total_sales DESC;
+```
 
 - Customer Purchase Frequency
 ```
